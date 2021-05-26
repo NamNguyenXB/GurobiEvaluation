@@ -42,11 +42,12 @@ namespace GurobiDotNetCore
                 var solveModel = new SolveModel();
 
                 var stopwatch = new Stopwatch();
-                const int demoCode = 0;
+                const int demoCode = 1;
                 const int kMax = 3;
                 const int kMin = 2;
                 const int limitStudent = 100;
 
+                // Pair 2 - all students.
                 if (demoCode == 0)
                 {
                     stopwatch.Start();
@@ -56,6 +57,7 @@ namespace GurobiDotNetCore
                     Console.WriteLine("Execution Time is {0} ms", stopwatch.ElapsedMilliseconds);
                 }
 
+                // Matheuristic kMin = 2; kMax = 3; nSubClassMax = 20
                 if (demoCode == 1)
                 {
                     stopwatch.Start();
@@ -71,6 +73,7 @@ namespace GurobiDotNetCore
                     Console.WriteLine("Execution Time is {0} ms", stopwatch.ElapsedMilliseconds);
                 }
 
+                // kMin = 2; kMax = 3 with only 100 students.
                 if (demoCode == 2)
                 {
                     Console.WriteLine($"Run solver with the first {limitStudent} students");
@@ -82,6 +85,7 @@ namespace GurobiDotNetCore
                     Console.WriteLine("Execution Time is {0} ms", stopwatch.ElapsedMilliseconds);
                 }
 
+                // Matheuristic kMin = 2; kMax = 3; nSubClassMax = 5 with only 100 students.
                 else if (demoCode == 3)
                 {
                     Console.WriteLine($"Run matheuristic with the first {limitStudent} students");
@@ -96,6 +100,33 @@ namespace GurobiDotNetCore
                         Console.WriteLine(line);
                     }
 
+                    env.Dispose();
+
+                    Console.WriteLine("Execution Time is {0} ms", stopwatch.ElapsedMilliseconds);
+                }
+
+                else if (demoCode == 4)
+                {
+                    stopwatch.Start();
+                    solveModel.Solve(env, students, kMin, kMax, out var model);
+                    stopwatch.Stop();
+                    solveModel.PrintSolution(model, students, kMax);
+                    Console.WriteLine("Execution Time is {0} ms", stopwatch.ElapsedMilliseconds);
+                }
+
+                if (demoCode == 5)
+                {
+                    stopwatch.Start();
+                    solveModel.Solve(env, students, 20, out var cost, out var assignmentArray);
+                    stopwatch.Stop();
+
+                    foreach (var line in assignmentArray)
+                    {
+                        Console.WriteLine(line);
+                    }
+
+                    Console.WriteLine($"Objective value: ${cost/2}");
+                    
                     env.Dispose();
 
                     Console.WriteLine("Execution Time is {0} ms", stopwatch.ElapsedMilliseconds);

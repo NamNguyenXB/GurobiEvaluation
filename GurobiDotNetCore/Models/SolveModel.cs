@@ -26,7 +26,7 @@ namespace GurobiDotNetCore.Models
             model = new GRBModel(env);
             var nStudents = students.Count;
 
-            // x[i][j]
+            // Add variables x[i][j]
             var x = new GRBVar[nStudents, nStudents];
             for (var i = 0; i < nStudents; ++i)
             {
@@ -38,7 +38,9 @@ namespace GurobiDotNetCore.Models
                 }
             }
 
+            // Maximize
             model.ModelSense = GRB.MAXIMIZE;
+
             GRBLinExpr exp4 = 0;
             for (var i = 0; i < nStudents; i++)
             {
@@ -167,6 +169,7 @@ namespace GurobiDotNetCore.Models
             }
 
             model.ModelSense = GRB.MAXIMIZE;
+
             for (var s = 0; s < nStudents; s++)
             {
                 GRBLinExpr expr = 0;
@@ -322,6 +325,38 @@ namespace GurobiDotNetCore.Models
             }
 
             return ret;
+        }
+
+        public void Solve(GRBEnv env, List<Student> students, int nTrunks, out double cost,
+            out List<string> assignmentArray)
+        {
+            assignmentArray = new List<string>();
+
+            var trunks = Split(students, nTrunks, 2);
+            var preNStudents = 0;
+            var preNGroups = 0;
+            cost = 0.0;
+            for (var i = 0; i < trunks.Count; i++)
+            {
+                Console.WriteLine($"Solving with {trunks[i].Count} students...");
+                Solve(env, trunks[i], out var model);
+                cost += model.ObjVal;
+
+                for (var l = 0; l < trunks[i].Count; l++)
+                {
+                    for (var m = 0; m < trunks[i].Count; m++)
+                    {
+                        var x = model.GetVarByName($"x-{l}-{m}");
+                        if (x.X > 0 && l <= m)
+                        {
+                            assignmentArray.Add($"[student-{preNStudents+ l}]-[student-{preNStudents + m}]");
+                        }
+                    }
+                }
+                preNStudents += trunks[i].Count;
+                //model.Dispose();
+                Console.WriteLine($"DONE [{i + 1}/{trunks.Count}]------------------------");
+            }
         }
 
         public void Solve(GRBEnv env, List<Student> students, int kMin, int kMax, int nTrunks, out double cost, out List<string> assignmentArray)
